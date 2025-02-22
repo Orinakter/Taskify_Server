@@ -1,33 +1,38 @@
 const express = require("express");
-const { MongoClient,ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
-const uri = "mongodb://localhost:27017";
 
 app.use(express.json());
 app.use(cors());
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fo90p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
 
 const run = async () => {
   try {
-    const client = new MongoClient(uri,  {
-        serverApi: {
-            version: ServerApiVersion.v1,
-            strict: true,
-            deprecationErrors: true,
-        }
-    }
-    );
     let db = client.db("task_management");
     let taskCollection = db.collection("tasks");
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+
+    app.get("/test", (req, res) => {
+      res.send("Hello express");
+    });
 
     // GET tasks for a specific user
     app.get("/api/tasks", async (req, res) => {
@@ -70,7 +75,7 @@ const run = async () => {
     app.put("/api/tasks/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        
+
         const updatedTask = { $set: { ...req.body } };
         await db
           .collection("tasks")
@@ -96,9 +101,10 @@ const run = async () => {
   }
 };
 
-run();
+run().catch(console.dir);
+
 app.get("/", async (req, res) => {
-  res.send("server running");
+  res.send("server running...!");
 });
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
